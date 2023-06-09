@@ -1,4 +1,4 @@
-# Property of Kevin Wang
+# By Kevin Wang
 # website: kvnwng11.github.io
 
 import pandas as pd
@@ -10,13 +10,13 @@ import os
 import shutil
 
 """ Declare variables """
-data_path = '/' # Folder where price data is stored
-state_path = '/' # Folder where state data is stored
-pairs = [ # list of pairs
-    ['', '']
-] 
+data_path = '/'  # Folder where price data is stored
+state_path = '/'  # Folder where state is stored
+pairs = [  # Pairs to trade
+    ['BTC', 'ETH']
+]
 
-
+""" Declare variables """
 window = 30 * 1440
 stop_loss = -0.9
 commission = 0
@@ -24,17 +24,17 @@ entry_zscore = 1
 exit_zscore = 0
 
 
-today = pd.to_datetime("today")  # get current timestamp
+today = pd.to_datetime("today")  # Get current timestamp
 
 
 def trade(pair):
     """
-    Description: Backtests a pairs trading strategy between a pair of coins.
+    Description: Backtests the strategy on the given pair of coins.
 
-    Params:
+    Arguments:
         pair: An array containing the list of coins to trade (has only 2 elements).
     """
-    # initialize
+    # Initialize
     statefile = ''
     x_label = pair[0]
     y_label = pair[1]
@@ -42,7 +42,7 @@ def trade(pair):
     y_position = 0
     current_return = 0
 
-    # create statefile if non-existent
+    # Create statefile if non-existent
     if not os.path.exists(state_path+statefile):
         src = state_path+'template.csv'
         dst = state_path+statefile
@@ -51,33 +51,35 @@ def trade(pair):
     """ Load in data (removed) """
     raw_data = pd.DataFrame()
 
-    # starting balance
+    # Starting balance
     balance = 1000
 
-    # loop through all price data
+    # Loop through all price data
     for t in range(window+1, len(raw_data)):
+        # Get the current position
         x_old_position = x_position
         y_old_position = y_position
-        past_data = raw_data[[x_label,y_label]][t-window-1:t-1]
+        past_data = raw_data[[x_label, y_label]][t-window-1:t-1]
         x = np.array(past_data[x_label])
         y = np.array(past_data[y_label])
+
+        # Get the curent price
         curr_x = raw_data[x_label][t]
         curr_y = raw_data[y_label][t]
 
-        # simple beta (hacky solution)
-        reg = sm.OLS(np.log(y), sm.add_constant(np.log(x)))
-        reg = reg.fit()
-        b0 = reg.params[1]
-        hedge_ratio = b0
+        # Simple beta
+        beta = 1
 
         """ Find current z-score (removed) """
 
-        # calculate the current return of the portfolio
-        current_return = x_old_position*(curr_x/raw_data[x_label][t-1] - 1) + y_old_position*(curr_y/raw_data[y_label][t-1] - 1)
+        """ Calculate the current return """
+        current_return = x_old_position * \
+            (curr_x/raw_data[x_label][t-1] - 1) + \
+            y_old_position*(curr_y/raw_data[y_label][t-1] - 1)
 
         """ Trading Logic (removed) """
 
-        # calculate returns
+        """ Calculate returns """
         balance *= (1+current_return)
 
         """ Update State File (removed)"""
@@ -85,9 +87,10 @@ def trade(pair):
 
 def execute():
     """
-    Description: Backtests the strategy for each pair of coins.
+    Description: Backtests.
     """
     for pair in pairs:
         trade(pair)
+
 
 execute()
